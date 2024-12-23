@@ -1,285 +1,211 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'dart:math';
 
 void main() {
-  runApp(MyApp());
+  runApp(TicTacToeApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class TicTacToeApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: TicTacToeScreen(),
-    );
-  }
+  _TicTacToeAppState createState() => _TicTacToeAppState();
 }
 
-class TicTacToeScreen extends StatefulWidget {
-  const TicTacToeScreen({super.key});
+enum GameMode { PlayerVsPlayer, PlayerVsCPU }
+enum Difficulty { Easy, Medium, Hard }
 
-  @override
-  _TicTacToeScreenState createState() => _TicTacToeScreenState();
-}
+class _TicTacToeAppState extends State<TicTacToeApp> {
+  GameMode _gameMode = GameMode.PlayerVsPlayer;
+  Difficulty _difficulty = Difficulty.Easy;
+  List<String> _board = List.filled(9, '');
+  String _currentPlayer = 'X';
+  bool _gameOver = false;
+  String _winnerMessage = '';
 
-class _TicTacToeScreenState extends State<TicTacToeScreen> {
-  List<String> board = List.filled(9, "");
-  String currentPlayer = "X";
-  bool isAgainstComputer = false;
-  String difficulty = "Easy";
-
-  void _handleTap(int index) {
-    if (board[index] == "") {
-      setState(() {
-        board[index] = currentPlayer;
-        if (_checkWin(currentPlayer)) {
-          _showDialog("Player $currentPlayer wins!");
-          return;
-        }
-        if (_checkDraw()) {
-          _showDialog("It's a draw!");
-          return;
-        }
-        currentPlayer = currentPlayer == "X" ? "O" : "X";
-        if (isAgainstComputer && currentPlayer == "O") {
-          _computerMove();
-        }
-      });
-    }
+  void _restartGame() {
+    setState(() {
+      _board = List.filled(9, '');
+      _currentPlayer = 'X';
+      _gameOver = false;
+      _winnerMessage = '';
+    });
   }
 
-  void _computerMove() {
-    int bestMove = -1;
-    if (difficulty == "Easy") {
-      List<int> availableMoves = []; // Corrected syntax
-      for (int i = 0; i < board.length; i++) {
-        if (board[i] == "") {
-          availableMoves.add(i);
+  void _changeMode(GameMode mode) {
+    setState(() {
+      _gameMode = mode;
+      _restartGame();
+    });
+  }
+
+  void _changeDifficulty(Difficulty difficulty) {
+    setState(() {
+      _difficulty = difficulty;
+      _restartGame();
+    });
+  }
+
+  void _makeMove(int index) {
+    if (_board[index] != '' || _gameOver) return;
+    setState(() {
+      _board[index] = _currentPlayer;
+      if (_checkWinner(_currentPlayer)) {
+        _gameOver = true;
+        _winnerMessage = 'Player $_currentPlayer Wins!';
+      } else if (!_board.contains('')) {
+        _gameOver = true;
+        _winnerMessage = "It's a Draw!";
+      } else {
+        _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
+        if (_gameMode == GameMode.PlayerVsCPU && _currentPlayer == 'O' && !_gameOver) {
+          _cpuMove();
         }
       }
-      if (availableMoves.isNotEmpty) {
-        Random random = Random();
-        bestMove = availableMoves[random.nextInt(availableMoves.length)];
-      }
+    });
+  }
+
+  void _cpuMove() {
+    int move;
+    if (_difficulty == Difficulty.Easy) {
+      move = _board.indexWhere((e) => e == '');
+    } else if (_difficulty == Difficulty.Medium) {
+      move = _findBestMove();
     } else {
-      int bestScore = -100;
-
-      for (int i = 0; i < board.length; i++) {
-        if (board[i] == "") {
-          board[i] = "O";
-          int score = minimax(board, 0, false);
-          board[i] = "";
-
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = i;
-          }
-        }
-      }
+      move = _findBestMove();
     }
-    if (bestMove != -1) {
-      _handleTap(bestMove);
-    }
+    _makeMove(move);
   }
 
-  int minimax(List<String> board, int depth, bool isMaximizing) {
-    if (_checkWin("X")) {
-      return -1;
-    }
-    if (_checkWin("O")) {
-      return 1;
-    }
-    if (_checkDraw()) {
-      return 0;
-    }
-
-    if (isMaximizing) {
-      int bestScore = -100;
-      for (int i = 0; i < board.length; i++) {
-        if (board[i] == "") {
-          board[i] = "O";
-          int score = minimax(board, depth + 1, false);
-          board[i] = "";
-          bestScore = max(score, bestScore);
+  int _findBestMove() {
+    for (int i = 0; i < 9; i++) {
+      if (_board[i] == '') {
+        _board[i] = 'O';
+        if (_checkWinner('O')) {
+          _board[i] = '';
+          return i;
         }
+        _board[i] = '';
       }
-      return bestScore;
-    } else {
-      int bestScore = 100;
-      for (int i = 0; i < board.length; i++) {
-        if (board[i] == "") {
-          board[i] = "X";
-          int score = minimax(board, depth + 1, true);
-          board[i] = "";
-          bestScore = min(score, bestScore);
-        }
-      }
-      return bestScore;
     }
+    for (int i = 0; i < 9; i++) {
+      if (_board[i] == '') {
+        _board[i] = 'X';
+        if (_checkWinner('X')) {
+          _board[i] = '';
+          return i;
+        }
+        _board[i] = '';
+      }
+    }
+    return _board.indexWhere((e) => e == '');
   }
 
-  bool _checkWin(String player) { // Corrected: Added the method
-    for (int i = 0; i < 9; i += 3) {
-      if (board[i] == player && board[i + 1] == player && board[i + 2] == player) {
+  bool _checkWinner(String player) {
+    const winPatterns = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+      [0, 4, 8], [2, 4, 6]             // Diagonals
+    ];
+    for (var pattern in winPatterns) {
+      if (_board[pattern[0]] == player &&
+          _board[pattern[1]] == player &&
+          _board[pattern[2]] == player) {
         return true;
       }
-    }
-    for (int i = 0; i < 3; i++) {
-      if (board[i] == player && board[i + 3] == player && board[i + 6] == player) {
-        return true;
-      }
-    }
-    if (board[0] == player && board[4] == player && board[8] == player) {
-      return true;
-    }
-    if (board[2] == player && board[4] == player && board[6] == player) {
-      return true;
     }
     return false;
   }
 
-  bool _checkDraw() { // Corrected: Added the method
-    return !board.contains("");
-  }
-
-  void _showDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Restart"),
-              onPressed: () {
-                setState(() {
-                  board = List.filled(9, "");
-                  currentPlayer = "X";
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // ... (rest of the build method remains the same)
-      return Scaffold(
-      appBar: AppBar(
-        title: Text("Tic Tac Toe"),
-      ),
-      body: Center( // Center the GridView
-        child: SizedBox( // Constrain the size of the GridView
-          width: 300, // Adjust as needed
-          height: 300,
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(title: Text('Tic Tac Toe')),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Mode: ${_gameMode == GameMode.PlayerVsPlayer ? 'Player vs Player' : 'Player vs CPU'}${_gameMode == GameMode.PlayerVsCPU ? ' | Difficulty: ${_difficulty.name}' : ''}',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            itemCount: 9,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () => _handleTap(index),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                  ),
-                  child: Center(
-                    child: Text(
-                      board[index],
-                      style: TextStyle(fontSize: 40),
+            if (_winnerMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(
+                  _winnerMessage,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+            SizedBox(height: 20),
+            Center(
+              child: Container(
+                width: 300,
+                height: 300,
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                  itemCount: 9,
+                  itemBuilder: (context, index) => GestureDetector(
+                    onTap: () => _makeMove(index),
+                    child: Container(
+                      margin: EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _board[index],
+                          style: TextStyle(fontSize: 32, color: Colors.white),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton( // Cog icon menu
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (context) {
-              return Container(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    ListTile(
-                      title: Text('1 Player'),
-                      onTap: () {
-                        Navigator.pop(context); // Close bottom sheet
-                        _showDifficultySelection();
-                      },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Column(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.refresh),
+                      onPressed: _restartGame,
                     ),
-                    ListTile(
-                      title: Text('2 Players'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          isAgainstComputer = false;
-                        });
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.settings),
+                      onSelected: (value) {
+                        if (value == 'Mode') {
+                          _changeMode(_gameMode == GameMode.PlayerVsPlayer
+                              ? GameMode.PlayerVsCPU
+                              : GameMode.PlayerVsPlayer);
+                        }
                       },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(value: 'Mode', child: Text('Change Mode')),
+                        if (_gameMode == GameMode.PlayerVsCPU)
+                          PopupMenuItem(
+                            value: 'Difficulty',
+                            child: PopupMenuButton<Difficulty>(
+                              onSelected: (difficulty) => _changeDifficulty(difficulty),
+                              itemBuilder: (context) => [
+                                PopupMenuItem(value: Difficulty.Easy, child: Text('Easy')),
+                                PopupMenuItem(value: Difficulty.Medium, child: Text('Medium')),
+                                PopupMenuItem(value: Difficulty.Hard, child: Text('Hard')),
+                              ],
+                              child: Text('Select Difficulty'),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-              );
-            },
-          );
-        },
-        child: Icon(Icons.settings), // Cog icon
+              ],
+            ),
+          ],
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
-  void _showDifficultySelection() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                title: Text('Easy'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    isAgainstComputer = true;
-                    difficulty = "Easy";
-                  });
-                },
-              ),
-              ListTile(
-                title: Text('Medium'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    isAgainstComputer = true;
-                    difficulty = "Medium";
-                  });
-                },
-              ),
-              ListTile(
-                title: Text('Hard'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    isAgainstComputer = true;
-                    difficulty = "Hard";
-                  });
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
