@@ -77,6 +77,25 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
   }
 
   int _findBestMove() {
+    if (_difficulty == Difficulty.Hard) {
+      int bestScore = -1000;
+      int bestMove = -1;
+
+      for (int i = 0; i < 9; i++) {
+        if (_board[i] == '') {
+          _board[i] = 'O'; // Simulate CPU move
+          int score = _minimax(0, false);
+          _board[i] = ''; // Undo the move
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = i;
+          }
+        }
+      }
+      return bestMove;
+    }
+
+    // For Medium or Easy difficulty, use simpler logic
     for (int i = 0; i < 9; i++) {
       if (_board[i] == '') {
         _board[i] = 'O';
@@ -87,6 +106,7 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
         _board[i] = '';
       }
     }
+
     for (int i = 0; i < 9; i++) {
       if (_board[i] == '') {
         _board[i] = 'X';
@@ -98,6 +118,36 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
       }
     }
     return _board.indexWhere((e) => e == '');
+  }
+
+  int _minimax(int depth, bool isMaximizing) {
+    if (_checkWinner('O')) return 10 - depth; // Favor CPU wins
+    if (_checkWinner('X')) return depth - 10; // Penalize player wins
+    if (!_board.contains('')) return 0; // Draw
+
+    if (isMaximizing) {
+      int bestScore = -1000;
+      for (int i = 0; i < 9; i++) {
+        if (_board[i] == '') {
+          _board[i] = 'O'; // Simulate CPU move
+          int score = _minimax(depth + 1, false);
+          _board[i] = ''; // Undo move
+          bestScore = max(bestScore, score);
+        }
+      }
+      return bestScore;
+    } else {
+      int bestScore = 1000;
+      for (int i = 0; i < 9; i++) {
+        if (_board[i] == '') {
+          _board[i] = 'X'; // Simulate Player move
+          int score = _minimax(depth + 1, true);
+          _board[i] = ''; // Undo move
+          bestScore = min(bestScore, score);
+        }
+      }
+      return bestScore;
+    }
   }
 
   bool _checkWinner(String player) {
