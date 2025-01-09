@@ -1,0 +1,18 @@
+<lint-module
+    format="1"
+    dir="C:\Users\Alvin\dev\tic_tac_toe\tic_tac_toe_flutter\android\app"
+    name=":app"
+    type="APP"
+    maven="android:app:"
+    agpVersion="8.1.0"
+    buildFolder="C:\Users\Alvin\dev\tic_tac_toe\tic_tac_toe_flutter\build\app"
+    bootClassPath="C:\Users\Alvin\AppData\Local\Android\Sdk\platforms\android-35\android.jar;C:\Users\Alvin\AppData\Local\Android\Sdk\build-tools\33.0.1\core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-35">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>
