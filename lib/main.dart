@@ -195,7 +195,7 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
                         child: Container(
                           margin: EdgeInsets.all(4.0),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent,
+                            color: const Color.fromARGB(255, 148, 154, 165),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                           child: Center(
