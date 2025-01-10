@@ -1,5 +1,5 @@
 name: tic_tac_toe_flutter
-description: "A new Flutter project."
+description: "Tic Tac Toe Game using Flutter"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,6 +34,24 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/tic_tac_toe_icon.webp"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/tic_tac_toe_icon.webp"
+    background_color: "#000000"
+    theme_color: "#000000"
+  windows:
+    generate: true
+    image_path: "assets/tic_tac_toe_icon.webp"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/tic_tac_toe_icon.webp"
   
 
 dev_dependencies:
@@ -60,6 +78,8 @@ flutter_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/tic_tac_toe_icon.webp
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
