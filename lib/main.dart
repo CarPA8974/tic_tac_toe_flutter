@@ -95,7 +95,6 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
       return bestMove;
     }
 
-    // For Medium or Easy difficulty, use simpler logic
     for (int i = 0; i < 9; i++) {
       if (_board[i] == '') {
         _board[i] = 'O';
@@ -172,56 +171,68 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(title: Text('Tic Tac Toe')),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        body: Stack(
           children: [
-            Text(
-              'Mode: ${_gameMode == GameMode.PlayerVsPlayer ? 'Player vs Player' : 'Player vs CPU'}${_gameMode == GameMode.PlayerVsCPU ? ' | Difficulty: ${_difficulty.name}' : ''}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            if (_winnerMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Text(
-                  _winnerMessage,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
-            SizedBox(height: 20),
-            Center(
-              child: Container(
-                width: 300,
-                height: 300,
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-                  itemCount: 9,
-                  itemBuilder: (context, index) => GestureDetector(
-                    onTap: () => _makeMove(index),
-                    child: Container(
-                      margin: EdgeInsets.all(4.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Center(
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Mode: ${_gameMode == GameMode.PlayerVsPlayer ? 'Player vs Player' : 'Player vs CPU'}${_gameMode == GameMode.PlayerVsCPU ? ' | Difficulty: ${_difficulty.name}' : ''}',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    if (_winnerMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          _board[index],
-                          style: TextStyle(fontSize: 32, color: Colors.white),
+                          _winnerMessage,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+                    Center(
+                      child: Container(
+                        width: 300,
+                        height: 300,
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                          itemCount: 9,
+                          itemBuilder: (context, index) => GestureDetector(
+                            onTap: () => _makeMove(index),
+                            child: Container(
+                              margin: EdgeInsets.all(4.0),
+                              decoration: BoxDecoration(
+                                color: Colors.blueAccent,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  _board[index],
+                                  style: TextStyle(fontSize: 32, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ),
+              ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Column(
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: Icon(Icons.refresh),
                       onPressed: _restartGame,
+                      tooltip: 'Restart Game',
                     ),
                     PopupMenuButton<String>(
                       icon: Icon(Icons.settings),
@@ -251,7 +262,7 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
