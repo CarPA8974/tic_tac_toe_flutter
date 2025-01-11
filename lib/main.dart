@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
+
 
 void main() {
   runApp(TicTacToeApp());
@@ -85,34 +87,58 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
     } else if (_difficulty == Difficulty.Medium) {
       move = _findBestMove();
     } else {
-      move = _findBestMove();
+      move = _findBestMove(); // Hard difficulty uses Minimax
     }
     _makeMove(move);
   }
 
   int _findBestMove() {
-    for (int i = 0; i < 9; i++) {
-      if (_board[i] == '') {
-        _board[i] = 'O';
-        if (_checkWinner('O')) {
-          _board[i] = '';
-          return i;
-        }
-        _board[i] = '';
-      }
-    }
+    int bestScore = -1000;
+    int bestMove = -1;
 
     for (int i = 0; i < 9; i++) {
       if (_board[i] == '') {
-        _board[i] = 'X';
-        if (_checkWinner('X')) {
-          _board[i] = '';
-          return i;
+        _board[i] = 'O'; // CPU's move
+        int score = _minimax(_board, 0, false);
+        _board[i] = ''; // Undo the move
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = i;
         }
-        _board[i] = '';
       }
     }
-    return _board.indexWhere((e) => e == '');
+
+    return bestMove;
+  }
+
+  int _minimax(List<String> board, int depth, bool isMaximizing) {
+    if (_checkWinner('O')) return 10 - depth; // CPU wins
+    if (_checkWinner('X')) return depth - 10; // Player wins
+    if (!board.contains('')) return 0; // Draw
+
+    if (isMaximizing) {
+      int bestScore = -1000;
+      for (int i = 0; i < 9; i++) {
+        if (board[i] == '') {
+          board[i] = 'O';
+          int score = _minimax(board, depth + 1, false);
+          board[i] = '';
+          bestScore = max(bestScore, score);
+        }
+      }
+      return bestScore;
+    } else {
+      int bestScore = 1000;
+      for (int i = 0; i < 9; i++) {
+        if (board[i] == '') {
+          board[i] = 'X';
+          int score = _minimax(board, depth + 1, true);
+          board[i] = '';
+          bestScore = min(bestScore, score);
+        }
+      }
+      return bestScore;
+    }
   }
 
   bool _checkWinner(String player) {
@@ -195,7 +221,7 @@ class _TicTacToeAppState extends State<TicTacToeApp> {
                         child: Container(
                           margin: EdgeInsets.all(4.0),
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 148, 154, 165),
+                            color: const Color(0xFFA6938F),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                           child: Center(
